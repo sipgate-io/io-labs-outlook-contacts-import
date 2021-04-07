@@ -5,11 +5,13 @@ const express = require("express");
 const axios = require("axios");
 const app = express();
 
-const clientId = process.env.OAUTH_APP_ID;
-const authority = process.env.OAUTH_AUTHORITY;
-const clientSecret = process.env.OAUTH_APP_SECRET;
-const scopes = process.env.OAUTH_SCOPES;
-const redirectUri = process.env.OAUTH_REDIRECT_URI;
+const clientId = process.env.AZURE_APP_ID;
+const authority = process.env.AZURE_AUTHORITY;
+const clientSecret = process.env.AZURE_APP_SECRET;
+const scopes = process.env.AZURE_SCOPES;
+const redirectUri = process.env.AZURE_OAUTH_REDIRECT_URI;
+
+const baseURL = "https://graph.microsoft.com/v1.0/"
 
 const parameters = qs.stringify({
   client_id: clientId,
@@ -21,7 +23,7 @@ const parameters = qs.stringify({
 const URI = `${authority}oauth2/v2.0/authorize?${parameters}`;
 console.log(`Please visit the following URI and allow access to your Outlook account: ${URI}`);
 
-let token;
+let outlookClient
 
 app.get("/auth/callback", async (req, res) => {
   const code = req.query.code;
@@ -35,36 +37,30 @@ app.get("/auth/callback", async (req, res) => {
   });
   const url = `${authority}oauth2/v2.0/token`;
 
-  const tokenData = await axios.post(url, parameters, {
+  const tokenResponse = await axios.post(url, parameters, {
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
     },
   });
 
-  const data = tokenData.data;
-  token = data.access_token;
+  const tokenData = tokenResponse.data;
+  token = tokenData.access_token;
+  outlookClient = axios.create({baseURL, headers: {Authorization: `Bearer ${token}`}})
 
-  res.sendStatus(200);
+  res.send("<h1>Authentication successful!</h1>");
 });
 
-app.get("/list-contacts", async (req, res) => {
-  if (!token) {
-    res.sendStatus(401);
-    return;
+async function getAllOutlookContacts() {
+  const response = (await outlookClient.get("/me/contactFolders")).data.value
+  const folderIds = response.map(folder => folder.id)
+  let contacts = []
+
+  contacts.push(...(await outlookClient.get(`/me/contacts`)).data.value)
+
+  for (folderId of folderIds){
+    contacts.push(...(await outlookClient.get(`/me/contactFolders/${folderId}/contacts`)).data.value)
   }
-
-  const response = await axios.get(
-    "https://graph.microsoft.com/v1.0/me/contacts",
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
-
-  console.log(response.data);
-
-  res.send(response.data);
-});
+  return contacts
+}
 
 app.listen(3000, () => console.log("Server listening on port 3000"));
