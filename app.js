@@ -1,54 +1,28 @@
 require("dotenv").config();
+const outlook = require("./outlook-auth");
 
-const qs = require("querystring");
-const express = require("express");
-const axios = require("axios");
-const app = express();
+const fs = require("fs");
+const util = require('util');
 
-const clientId = process.env.AZURE_APP_ID;
-const authority = process.env.AZURE_AUTHORITY;
-const clientSecret = process.env.AZURE_APP_SECRET;
-const scopes = process.env.AZURE_SCOPES;
-const redirectUri = process.env.AZURE_OAUTH_REDIRECT_URI;
+let outlookClient;
+let token;
 
-const baseURL = "https://graph.microsoft.com/v1.0/"
+async function run() {
+  const readFile = util.promisify(fs.readFile);
+  let token;
 
-const parameters = qs.stringify({
-  client_id: clientId,
-  redirect_uri: redirectUri,
-  response_type: "code",
-  scope: scopes,
-});
+  try {
+    const data = await readFile('token.json');
+    token = JSON.parse(data).token;
+  } catch {
+    const authenticateOutlook = util.promisify(outlook.authenticateOutlook);
+    token = await authenticateOutlook();
+  }
 
-const URI = `${authority}oauth2/v2.0/authorize?${parameters}`;
-console.log(`Please visit the following URI and allow access to your Outlook account: ${URI}`);
+  console.log(token);
 
-let outlookClient
-
-app.get("/auth/callback", async (req, res) => {
-  const code = req.query.code;
-
-  const parameters = qs.stringify({
-    client_id: clientId,
-    client_secret: clientSecret,
-    redirect_uri: redirectUri,
-    grant_type: "authorization_code",
-    code,
-  });
-  const url = `${authority}oauth2/v2.0/token`;
-
-  const tokenResponse = await axios.post(url, parameters, {
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-  });
-
-  const tokenData = tokenResponse.data;
-  token = tokenData.access_token;
-  outlookClient = axios.create({baseURL, headers: {Authorization: `Bearer ${token}`}})
-
-  res.send("<h1>Authentication successful!</h1>");
-});
+  // outlookClient = axios.create({baseURL, headers: {Authorization: `Bearer ${token}`}})
+}
 
 async function getAllOutlookContacts() {
   const response = (await outlookClient.get("/me/contactFolders")).data.value
@@ -63,4 +37,4 @@ async function getAllOutlookContacts() {
   return contacts
 }
 
-app.listen(3000, () => console.log("Server listening on port 3000"));
+run().catch();
