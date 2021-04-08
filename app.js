@@ -1,5 +1,6 @@
 require("dotenv").config();
-const outlook = require("./outlook-auth");
+const outlookAuth = require("./outlook-auth");
+const { OutlookClient } = require("./outlook");
 const sipgate = require("./sipgate");
 
 const fs = require("fs");
@@ -13,30 +14,12 @@ async function run() {
     const data = await readFile("token.json");
     token = JSON.parse(data).token;
   } catch {
-    const authenticateOutlook = util.promisify(outlook.authenticateOutlook);
-
+    const authenticateOutlook = util.promisify(outlookAuth.authenticateOutlook);
     token = await authenticateOutlook();
   }
 
-  console.log(token);
-
-  // outlookClient = axios.create({baseURL, headers: {Authorization: `Bearer ${token}`}})
+  const outlookClient = new OutlookClient(token);
+  const outlookContacts = await outlookClient.getAllOutlookContacts();
 }
 
-async function getAllOutlookContacts() {
-  const response = (await outlookClient.get("/me/contactFolders")).data.value;
-  const folderIds = response.map((folder) => folder.id);
-  let contacts = [];
-
-  contacts.push(...(await outlookClient.get(`/me/contacts`)).data.value);
-
-  for (folderId of folderIds) {
-    contacts.push(
-      ...(await outlookClient.get(`/me/contactFolders/${folderId}/contacts`))
-        .data.value
-    );
-  }
-  return contacts;
-}
-
-run().catch();
+run().catch(console.error);

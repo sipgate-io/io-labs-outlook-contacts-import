@@ -10,8 +10,6 @@ const clientSecret = process.env.AZURE_APP_SECRET;
 const scopes = process.env.AZURE_SCOPES;
 const redirectUri = process.env.AZURE_OAUTH_REDIRECT_URI;
 
-const baseURL = "https://graph.microsoft.com/v1.0/";
-
 const parameters = qs.stringify({
   client_id: clientId,
   redirect_uri: redirectUri,
