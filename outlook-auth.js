@@ -24,6 +24,8 @@ function authenticateOutlook(callback) {
     `Please visit the following URI and allow access to your Outlook account: ${URI}`
   );
 
+  const server = app.listen(3000, () => console.log("Server listening on port 3000"));
+
   app.get("/auth/callback", async (req, res) => {
     const code = req.query.code;
 
@@ -59,9 +61,9 @@ function authenticateOutlook(callback) {
 
     callback(undefined, token);
     res.send("<h1>Authentication successful!</h1>");
+    server.close();
   });
 
-  app.listen(3000, () => console.log("Server listening on port 3000"));
 }
 
 module.exports = { authenticateOutlook };
