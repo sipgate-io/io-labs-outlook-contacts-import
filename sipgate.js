@@ -4,5 +4,5 @@ const client = sipgateIO("tokenid:token");
 const contactsModule = createContactsModule(client);
 
 const getContacts = async () => {
-    return await contactsModule.get("SHARED");
+  return await contactsModule.get("SHARED");
 };
