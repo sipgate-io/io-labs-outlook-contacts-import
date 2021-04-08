@@ -111,9 +111,15 @@ function outlookContactToSipgateContact(outlookContact) {
     numbers.push({ number, type: [TYPE_WORK] });
   }
 
+  const emails = outlookContact.emailAddresses.map(({ address }) => ({
+    email: address,
+    type: [],
+  }));
+
   return {
     name: outlookContact.displayName,
     numbers,
+    emails,
     scope: "SHARED",
   };
 }

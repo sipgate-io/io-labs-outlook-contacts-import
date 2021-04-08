@@ -7,8 +7,11 @@ const conversion = require("./contact-conversion");
 const fs = require("fs");
 const util = require("util");
 
+const readFile = util.promisify(fs.readFile);
+const writeFile = util.promisify(fs.writeFile);
+const fileExists = util.promisify(fs.exists);
+
 async function run() {
-  const readFile = util.promisify(fs.readFile);
   let token;
 
   try {
@@ -22,11 +25,32 @@ async function run() {
   const outlookClient = new OutlookClient(token);
   const outlookContacts = await outlookClient.getAllOutlookContacts();
 
-  const outlookContactsAsSipgate = outlookContacts.map(
-    conversion.outlookContactToSipgateContact
-  );
+  let mapping = {};
+  if (await fileExists("mapping.json")) {
+    const fileContents = await readFile("mapping.json");
+    mapping = JSON.parse(fileContents);
+  }
 
-  console.log(JSON.stringify(outlookContactsAsSipgate, null, 4));
+  for (outlookContact of outlookContacts) {
+    if (outlookContact.id in mapping) {
+      let sipgateId = mapping[outlookContact.id];
+      console.log(`Contact already exists: ${sipgateId}`);
+      const sipgateContact = conversion.outlookContactToSipgateContact(
+        outlookContact
+      );
+      sipgate.updateContact(sipgateId, sipgateContact);
+    } else {
+      console.log(`Found new contact`);
+      const sipgateContact = conversion.outlookContactToSipgateContact(
+        outlookContact
+      );
+      let sipgateId = await sipgate.createNewContact(sipgateContact);
+
+      mapping[outlookContact.id] = sipgateId;
+    }
+  }
+
+  await writeFile("mapping.json", JSON.stringify(mapping, null, 4));
 }
 
 run().catch(console.error);
