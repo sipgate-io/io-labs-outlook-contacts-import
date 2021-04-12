@@ -10,6 +10,26 @@ const clientSecret = process.env.AZURE_APP_SECRET;
 const scopes = process.env.AZURE_SCOPES;
 const redirectUri = process.env.AZURE_OAUTH_REDIRECT_URI;
 
+if(!clientId) {
+  throw Error("Please provide a valid Application ID.")
+}
+
+if(!authority) {
+  throw Error("Please provide a valid Microsoft Graph Authority.")
+}
+
+if(!clientSecret) { 
+  throw Error("Please provide a valid client secret.")
+}
+
+if(!scopes) { 
+  throw Error("Please provide a valid Microsoft Graph scope.")
+}
+
+if(!redirectUri) { 
+  throw Error("Please provide a valid Redirect URI.")
+}
+
 const parameters = qs.stringify({
   client_id: clientId,
   redirect_uri: redirectUri,

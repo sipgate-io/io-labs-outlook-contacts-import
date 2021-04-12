@@ -4,6 +4,10 @@ const uuid = require("uuid");
 const tokenId = process.env.SIPGATE_TOKEN_ID;
 const token = process.env.SIPGATE_TOKEN;
 
+if(!tokenId || !token) { 
+  throw Error("Please provide a valid sipgate TokenID and Token.")
+}
+
 const client = sipgateIO({ username: tokenId, password: token });
 const contactsModule = createContactsModule(client);
 
