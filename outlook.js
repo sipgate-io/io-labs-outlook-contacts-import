@@ -1,12 +1,14 @@
 const axios = require("axios");
+const outlookAuth = require("./outlook-auth");
 
 const baseURL = "https://graph.microsoft.com/v1.0/";
 
 class OutlookClient {
   constructor(token) {
+    this.token = token;
     this.axios = axios.create({
       baseURL,
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { Authorization: `Bearer ${this.token}` },
     });
   }
 

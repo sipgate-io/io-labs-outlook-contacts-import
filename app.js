@@ -12,24 +12,37 @@ const writeFile = util.promisify(fs.writeFile);
 const fileExists = util.promisify(fs.exists);
 
 async function run() {
-  let token;
+  let outlookToken;
+  let outlookContacts;
+  
+  const authenticateOutlook = util.promisify(outlookAuth.authenticateOutlook);
 
+  // token.json nicht vorhanden
   try {
     const data = await readFile("token.json");
-    token = JSON.parse(data).token;
+    outlookToken= JSON.parse(data).token;
   } catch {
-    const authenticateOutlook = util.promisify(outlookAuth.authenticateOutlook);
-    token = await authenticateOutlook();
+    outlookToken= await authenticateOutlook();
   }
 
-  const outlookClient = new OutlookClient(token);
-  const outlookContacts = await outlookClient.getAllOutlookContacts();
+  let outlookClient = new OutlookClient(outlookToken);
+
+  // token invalid/expired
+  try {
+    outlookContacts = await outlookClient.getAllOutlookContacts();
+  } catch {
+    outlookToken= await authenticateOutlook();
+    outlookClient = new OutlookClient(outlookToken);
+    outlookContacts = await outlookClient.getAllOutlookContacts();
+  }
 
   let mapping = {};
   if (await fileExists("mapping.json")) {
     const fileContents = await readFile("mapping.json");
     mapping = JSON.parse(fileContents);
   }
+
+  console.log(outlookContacts);
 
   for (outlookContact of outlookContacts) {
     if (outlookContact.id in mapping) {
