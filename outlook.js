@@ -12,6 +12,21 @@ class OutlookClient {
     });
   }
 
+  async getContactPhotos(contacts) {
+    for (let contact of contacts) {
+      try {
+        await this.axios
+          .get(
+            `/me/contactfolders/${contact.parentFolderId}/contacts/${contact.id}/photo/$value`
+          )
+          .then((photo) => (contact.photo = photo.data));
+      } catch (error) {
+        console.log(`No photo found for contact ${contact.id}! Skipping...`);
+      }
+    }
+    return contacts;
+  }
+
   async getAllOutlookContacts() {
     const response = (await this.axios.get("/me/contactFolders")).data.value;
     const folderIds = response.map((folder) => folder.id);
@@ -25,6 +40,7 @@ class OutlookClient {
           .data.value
       );
     }
+    contacts = await this.getContactPhotos(contacts);
     return contacts;
   }
 }

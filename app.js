@@ -14,13 +14,13 @@ const fileExists = util.promisify(fs.exists);
 async function run() {
   let outlookToken;
   let outlookContacts;
-  
+
   const authenticateOutlook = util.promisify(outlookAuth.authenticateOutlook);
 
   try {
     const data = await readFile("token.json");
     outlookToken = JSON.parse(data).token;
-  } catch(error) {
+  } catch (error) {
     console.error("Could not find token.json: " + error.message);
     console.log("Reauthenticating Outlook...");
     outlookToken = await authenticateOutlook();
@@ -30,7 +30,7 @@ async function run() {
 
   try {
     outlookContacts = await outlookClient.getAllOutlookContacts();
-  } catch(error) {
+  } catch (error) {
     console.error("Token expired: " + error.message);
     console.log("Reauthenticating Outlook...");
     outlookToken = await authenticateOutlook();
