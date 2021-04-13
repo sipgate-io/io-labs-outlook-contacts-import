@@ -17,21 +17,23 @@ async function run() {
   
   const authenticateOutlook = util.promisify(outlookAuth.authenticateOutlook);
 
-  // token.json nicht vorhanden
   try {
     const data = await readFile("token.json");
-    outlookToken= JSON.parse(data).token;
-  } catch {
-    outlookToken= await authenticateOutlook();
+    outlookToken = JSON.parse(data).token;
+  } catch(error) {
+    console.error("Could not find token.json: " + error.message);
+    console.log("Reauthenticating Outlook...");
+    outlookToken = await authenticateOutlook();
   }
 
   let outlookClient = new OutlookClient(outlookToken);
 
-  // token invalid/expired
   try {
     outlookContacts = await outlookClient.getAllOutlookContacts();
-  } catch {
-    outlookToken= await authenticateOutlook();
+  } catch(error) {
+    console.error("Token expired: " + error.message);
+    console.log("Reauthenticating Outlook...");
+    outlookToken = await authenticateOutlook();
     outlookClient = new OutlookClient(outlookToken);
     outlookContacts = await outlookClient.getAllOutlookContacts();
   }
@@ -41,8 +43,6 @@ async function run() {
     const fileContents = await readFile("mapping.json");
     mapping = JSON.parse(fileContents);
   }
-
-  console.log(outlookContacts);
 
   for (outlookContact of outlookContacts) {
     if (outlookContact.id in mapping) {
