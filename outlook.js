@@ -1,5 +1,4 @@
 const axios = require("axios");
-const outlookAuth = require("./outlook-auth");
 
 const baseURL = "https://graph.microsoft.com/v1.0/";
 
@@ -14,15 +13,21 @@ class OutlookClient {
 
   async getContactPhotos(contacts) {
     for (let contact of contacts) {
-      try {
-        await this.axios
-          .get(
-            `/me/contactfolders/${contact.parentFolderId}/contacts/${contact.id}/photo/$value`
-          )
-          .then((photo) => (contact.photo = photo.data));
-      } catch (error) {
-        console.log(`No photo found for contact ${contact.id}! Skipping...`);
-      }
+      await this.axios
+        .get(
+          `/me/contactfolders/${contact.parentFolderId}/contacts/${contact.id}/photo/$value`,
+          {
+            responseType: "arraybuffer",
+          }
+        )
+        .then((picture) => {
+          contact.picture = picture.data.toString("base64");
+        })
+        .catch((error) => {
+          if (error.isAxiosError && error.response.status != 404) {
+            console.error(e);
+          }
+        });
     }
     return contacts;
   }

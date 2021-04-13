@@ -51,7 +51,11 @@ async function run() {
       const sipgateContact = conversion.outlookContactToSipgateContact(
         outlookContact
       );
-      sipgate.updateContact(sipgateId, sipgateContact);
+      try {
+        sipgate.updateContact(sipgateId, sipgateContact);
+      } catch (e) {
+        console.log(sipgateContact);
+      }
     } else {
       console.log(`Found new contact`);
       const sipgateContact = conversion.outlookContactToSipgateContact(
