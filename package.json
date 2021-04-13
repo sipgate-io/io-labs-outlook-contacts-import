@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "delete:dev": "node app.js -D",
     "start:dev": "node app.js"
   },
   "repository": {

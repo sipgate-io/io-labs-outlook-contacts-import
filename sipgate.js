@@ -1,5 +1,6 @@
 const { sipgateIO, createContactsModule } = require("sipgateio");
 const uuid = require("uuid");
+const axios = require("axios");
 
 const tokenId = process.env.SIPGATE_TOKEN_ID;
 const token = process.env.SIPGATE_TOKEN;
@@ -11,8 +12,25 @@ if (!tokenId || !token) {
 const client = sipgateIO({ username: tokenId, password: token });
 const contactsModule = createContactsModule(client);
 
+const tokenString = Buffer.from(`${tokenId}:${token}`).toString("base64");
+const sipgateAPI = axios.create({
+  baseURL: "https://api.sipgate.com/v2",
+  headers: { Authorization: `Basic ${tokenString}` },
+});
+
 const getContacts = async () => {
   return await contactsModule.get("SHARED");
+};
+
+const deleteAllSharedContacts = async () => {
+  const sharedContacts = await contactsModule.get("SHARED");
+  console.log("Deleting all shared contacts.")
+  for (contact of sharedContacts) {
+    console.log(`Deleting contact: ${contact.name} (${contact.id}).`);
+    await sipgateAPI.delete(`/contacts/${contact.id}`);
+  }
+
+  // return await this.axios.delete("https://api.sipgate.com/v2/contacts");
 };
 
 const createNewContact = async (sipgateContact) => {
@@ -35,4 +53,5 @@ module.exports = {
   getContacts,
   createNewContact,
   updateContact,
+  deleteAllSharedContacts,
 };

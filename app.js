@@ -10,10 +10,20 @@ const util = require("util");
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 const fileExists = util.promisify(fs.exists);
+const deleteFile = util.promisify(fs.unlink);
 
 async function run() {
   let outlookToken;
   let outlookContacts;
+
+  const args = process.argv.slice(2);
+  if (args == "-D") {
+    if (await fileExists("./mapping.json")) {
+      console.log("Deleting mapping.json.");
+      await deleteFile("./mapping.json");
+    }
+    await sipgate.deleteAllSharedContacts();
+  }
 
   const authenticateOutlook = util.promisify(outlookAuth.authenticateOutlook);
 
@@ -47,7 +57,7 @@ async function run() {
   for (outlookContact of outlookContacts) {
     if (outlookContact.id in mapping) {
       let sipgateId = mapping[outlookContact.id];
-      console.log(`Contact already exists: ${sipgateId}`);
+      console.log(`Contact already exists: ${outlookContact.displayName}`);
       const sipgateContact = conversion.outlookContactToSipgateContact(
         outlookContact
       );
@@ -57,7 +67,7 @@ async function run() {
         console.log(sipgateContact);
       }
     } else {
-      console.log(`Found new contact`);
+      console.log(`Importing new Outlook contact: ${outlookContact.displayName}`);
       const sipgateContact = conversion.outlookContactToSipgateContact(
         outlookContact
       );
