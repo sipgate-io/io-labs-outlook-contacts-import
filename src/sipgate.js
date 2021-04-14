@@ -19,10 +19,13 @@ const getContacts = async () => {
 const deleteAllSharedContacts = async () => {
   const sharedContacts = await contactsModule.get("SHARED");
   console.log("Deleting all shared contacts.");
-  for (contact of sharedContacts) {
-    console.log(`Deleting contact: ${contact.name} (${contact.id}).`);
-    await client.delete(`/contacts/${contact.id}`);
-  }
+
+  const promises = sharedContacts.map((contact) =>
+    client
+      .delete(`/contacts/${contact.id}`)
+      .then(() => console.log(`Deleting contact: ${contact.name} (${contact.id}).`))
+  );
+  await Promise.all(promises);
 };
 
 const createNewContact = async (sipgateContact) => {

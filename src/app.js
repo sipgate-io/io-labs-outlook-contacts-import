@@ -45,7 +45,7 @@ async function run() {
     mapping = JSON.parse(fileContents);
   }
 
-  for (outlookContact of outlookContacts) {
+  const promises = outlookContacts.map(async (outlookContact) => {
     if (outlookContact.id in mapping) {
       let sipgateId = mapping[outlookContact.id];
       console.log(`Contact already exists: ${outlookContact.displayName}`);
@@ -53,12 +53,16 @@ async function run() {
         outlookContact
       );
       try {
-        sipgate.updateContact(sipgateId, sipgateContact);
-      } catch (e) {
-        console.log(sipgateContact);
+        await sipgate.updateContact(sipgateId, sipgateContact);
+      } catch (error) {
+        console.log(
+          `failed to update contact ${sipgateContact.name}: ${error.message}`
+        );
       }
     } else {
-      console.log(`Importing new Outlook contact: ${outlookContact.displayName}`);
+      console.log(
+        `Importing new Outlook contact: ${outlookContact.displayName}`
+      );
       const sipgateContact = conversion.outlookContactToSipgateContact(
         outlookContact
       );
@@ -66,7 +70,8 @@ async function run() {
 
       mapping[outlookContact.id] = sipgateId;
     }
-  }
+  });
+  await Promise.all(promises);
 
   await writeFile("mapping.json", JSON.stringify(mapping, null, 4));
 }
