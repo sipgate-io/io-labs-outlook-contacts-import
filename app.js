@@ -16,15 +16,6 @@ async function run() {
   let outlookToken;
   let outlookContacts;
 
-  const args = process.argv.slice(2);
-  if (args == "-D") {
-    if (await fileExists("./mapping.json")) {
-      console.log("Deleting mapping.json.");
-      await deleteFile("./mapping.json");
-    }
-    await sipgate.deleteAllSharedContacts();
-  }
-
   const authenticateOutlook = util.promisify(outlookAuth.authenticateOutlook);
 
   try {

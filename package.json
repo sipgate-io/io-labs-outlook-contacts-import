@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "delete:dev": "node app.js -D",
-    "start:dev": "node app.js"
+    "clean": "node clean-sipgate-contacts.js",
+    "import": "node app.js"
   },
   "repository": {
     "type": "git",
