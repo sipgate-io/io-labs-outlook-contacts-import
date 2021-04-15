@@ -36,12 +36,11 @@ const createNewContact = async (sipgateContact) => {
 
 // The `id` must be a valid UUID
 const updateContact = async (id, sipgateContact) => {
-  // TODO: release new library version and use `contactsModule.update`
   const contact = {
     ...sipgateContact,
     id,
   };
-  await client.put(`/contacts/${id}`, contact);
+  await contactsModule.update(contact);
 };
 
 module.exports = {
