@@ -30,13 +30,16 @@ async function run() {
   let outlookClient = new OutlookClient(outlookToken);
 
   try {
-    outlookContacts = await outlookClient.getAllOutlookContacts();
+    // outlookContacts = await outlookClient.getAllOrgContacts();
+    outlookContacts = await outlookClient.getAllPrivateContacts();
   } catch (error) {
     console.error("Token expired: " + error.message);
     console.log("Reauthenticating Outlook...");
+
     outlookToken = await authenticateOutlook();
     outlookClient = new OutlookClient(outlookToken);
-    outlookContacts = await outlookClient.getAllOutlookContacts();
+    // outlookContacts = await outlookClient.getAllOrgContacts();
+    outlookContacts = await outlookClient.getAllPrivateContacts();
   }
 
   let mapping = {};
@@ -49,12 +52,14 @@ async function run() {
   let nContactsImported = 0;
 
   const promises = outlookContacts.map(async (outlookContact) => {
+    // const sipgateContact = conversion.outlookOrgContactToSipgateContact(outlookContact);
+    const sipgateContact = conversion.outlookContactToSipgateContact(
+      outlookContact
+    );
+
     if (outlookContact.id in mapping) {
       let sipgateId = mapping[outlookContact.id];
       console.log(`Contact already exists: ${outlookContact.displayName}`);
-      const sipgateContact = conversion.outlookContactToSipgateContact(
-        outlookContact
-      );
       try {
         await sipgate.updateContact(sipgateId, sipgateContact);
       } catch (error) {
@@ -67,9 +72,6 @@ async function run() {
     } else {
       console.log(
         `Importing new Outlook contact: ${outlookContact.displayName}`
-      );
-      const sipgateContact = conversion.outlookContactToSipgateContact(
-        outlookContact
       );
       let sipgateId = await sipgate.createNewContact(sipgateContact);
 

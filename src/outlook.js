@@ -11,7 +11,7 @@ class OutlookClient {
     });
   }
 
-  async getAllOutlookContacts() {
+  async getAllPrivateContacts() {
     const response = (await this.axios.get("/me/contactFolders")).data.value;
     const folderIds = response.map((folder) => folder.id);
     let contacts = [];
@@ -25,6 +25,10 @@ class OutlookClient {
       );
     }
     return contacts;
+  }
+
+  async getAllOrgContacts() {
+    return (await this.axios.get(`/contacts`)).data.value;
   }
 }
 

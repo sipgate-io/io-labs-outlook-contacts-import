@@ -44,10 +44,16 @@ function authenticateOutlook(callback) {
     `Please visit the following URI and allow access to your Outlook account: ${URI}`
   );
 
-  const server = app.listen(3000, () => console.log("Server listening on port 3000"));
+  const server = app.listen(3000, () =>
+    console.log("Server listening on port 3000")
+  );
 
   app.get("/auth/callback", async (req, res) => {
     const code = req.query.code;
+    if (!code) {
+      console.error("The Microsoft API didn't respond with a `code`.");
+      return;
+    }
 
     const parameters = qs.stringify({
       client_id: clientId,
