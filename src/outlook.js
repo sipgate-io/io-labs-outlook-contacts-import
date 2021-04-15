@@ -1,10 +1,13 @@
 const axios = require("axios");
+const qs = require("querystring");
 
 const baseURL = "https://graph.microsoft.com/v1.0/";
 
+const authority = process.env.AZURE_AUTHORITY;
+
 class OutlookClient {
-  constructor(token) {
-    this.token = token;
+  constructor(accessToken) {
+    this.token = accessToken;
     this.axios = axios.create({
       baseURL,
       headers: { Authorization: `Bearer ${this.token}` },

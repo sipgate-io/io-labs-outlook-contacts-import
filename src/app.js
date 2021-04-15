@@ -10,37 +10,25 @@ const util = require("util");
 const readFile = util.promisify(fs.readFile);
 const writeFile = util.promisify(fs.writeFile);
 const fileExists = util.promisify(fs.exists);
-const deleteFile = util.promisify(fs.unlink);
+const authenticateOutlook = util.promisify(outlookAuth.authenticateOutlook);
 
 async function run() {
-  let outlookToken;
-  let outlookContacts;
-
-  const authenticateOutlook = util.promisify(outlookAuth.authenticateOutlook);
+  let outlookRefreshToken;
 
   try {
     const data = await readFile("token.json");
-    outlookToken = JSON.parse(data).token;
+    const tokenData = JSON.parse(data);
+    outlookRefreshToken = tokenData.refreshToken;
   } catch (error) {
     console.error("Could not find token.json: " + error.message);
-    console.log("Reauthenticating Outlook...");
-    outlookToken = await authenticateOutlook();
+    console.log("Authenticating Outlook...");
+    outlookRefreshToken = await authenticateOutlook();
   }
 
-  let outlookClient = new OutlookClient(outlookToken);
-
-  try {
-    // outlookContacts = await outlookClient.getAllOrgContacts();
-    outlookContacts = await outlookClient.getAllPrivateContacts();
-  } catch (error) {
-    console.error("Token expired: " + error.message);
-    console.log("Reauthenticating Outlook...");
-
-    outlookToken = await authenticateOutlook();
-    outlookClient = new OutlookClient(outlookToken);
-    // outlookContacts = await outlookClient.getAllOrgContacts();
-    outlookContacts = await outlookClient.getAllPrivateContacts();
-  }
+  const accessToken = await outlookAuth.refreshAndSaveToken(
+    outlookRefreshToken
+  );
+  let outlookClient = new OutlookClient(accessToken);
 
   let mapping = {};
   if (await fileExists("mapping.json")) {
@@ -50,6 +38,8 @@ async function run() {
 
   let nContactsUpdated = 0;
   let nContactsImported = 0;
+
+  let outlookContacts = await outlookClient.getAllPrivateContacts();
 
   const promises = outlookContacts.map(async (outlookContact) => {
     // const sipgateContact = conversion.outlookOrgContactToSipgateContact(outlookContact);
