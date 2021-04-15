@@ -27,8 +27,6 @@ function outlookContactToSipgateContact(outlookContact) {
     numbers.push({ number, type: [TYPE_WORK] });
   }
 
-  const picture = outlookContact.picture;
-
   const emails = outlookContact.emailAddresses.map(({ address }) => ({
     email: address,
     type: [],
@@ -53,7 +51,6 @@ function outlookContactToSipgateContact(outlookContact) {
 
   return {
     name: outlookContact.displayName,
-    picture: picture,
     numbers,
     emails,
     organization,

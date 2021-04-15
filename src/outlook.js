@@ -11,27 +11,6 @@ class OutlookClient {
     });
   }
 
-  async getContactPhotos(contacts) {
-    for (let contact of contacts) {
-      await this.axios
-        .get(
-          `/me/contactfolders/${contact.parentFolderId}/contacts/${contact.id}/photo/$value`,
-          {
-            responseType: "arraybuffer",
-          }
-        )
-        .then((picture) => {
-          contact.picture = picture.data.toString("base64");
-        })
-        .catch((error) => {
-          if (error.isAxiosError && error.response.status != 404) {
-            console.error(e);
-          }
-        });
-    }
-    return contacts;
-  }
-
   async getAllOutlookContacts() {
     const response = (await this.axios.get("/me/contactFolders")).data.value;
     const folderIds = response.map((folder) => folder.id);
@@ -45,7 +24,6 @@ class OutlookClient {
           .data.value
       );
     }
-    contacts = await this.getContactPhotos(contacts);
     return contacts;
   }
 }
