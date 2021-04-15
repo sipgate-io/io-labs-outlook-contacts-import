@@ -1,6 +1,5 @@
 const { sipgateIO, createContactsModule } = require("sipgateio");
 const uuid = require("uuid");
-const axios = require("axios");
 
 const tokenId = process.env.SIPGATE_TOKEN_ID;
 const token = process.env.SIPGATE_TOKEN;
