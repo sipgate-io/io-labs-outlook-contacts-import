@@ -39,13 +39,10 @@ async function run() {
   let nContactsUpdated = 0;
   let nContactsImported = 0;
 
-  let outlookContacts = await outlookClient.getAllPrivateContacts();
+  let outlookContacts = await outlookClient.getAllOrgContacts();
 
   const promises = outlookContacts.map(async (outlookContact) => {
-    // const sipgateContact = conversion.outlookOrgContactToSipgateContact(outlookContact);
-    const sipgateContact = conversion.outlookContactToSipgateContact(
-      outlookContact
-    );
+    const sipgateContact = conversion.outlookOrgContactToSipgateContact(outlookContact);
 
     if (outlookContact.id in mapping) {
       let sipgateId = mapping[outlookContact.id];
