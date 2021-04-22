@@ -8,7 +8,7 @@ if (!tokenId || !token) {
   throw Error("Please provide a valid sipgate TokenID and Token.");
 }
 
-const client = sipgateIO({ username: tokenId, password: token });
+const client = sipgateIO({ tokenId, token });
 const contactsModule = createContactsModule(client);
 
 const getContacts = async () => {
